@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/handler"
 )
 
 type user struct {
@@ -87,10 +88,17 @@ func executeQuery(query string, schema graphql.Schema) *graphql.Result {
 func main() {
 	_ = importJSONDataFromFile("data.json", &data)
 
-	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-		result := executeQuery(r.URL.Query().Get("query"), schema)
-		json.NewEncoder(w).Encode(result)
+	h := handler.New(&handler.Config{
+		Schema: &schema,
+		Pretty: true,
+		GraphiQL: false,
+		Playground: true,
 	})
+	http.Handle("/graphql", h)
+	//http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+	//	result := executeQuery(r.URL.Query().Get("query"), schema)
+	//	json.NewEncoder(w).Encode(result)
+	//})
 
 	fmt.Println("Now server is running on port 8080")
 	fmt.Println("Test with Get      : curl -g 'http://localhost:8080/graphql?query={user(id:\"1\"){name}}'")
